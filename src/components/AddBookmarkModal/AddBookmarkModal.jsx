@@ -9,7 +9,7 @@ import { useDebounce } from '../../utils/useDebounce'
 const COLOR_MODES = ['auto', 'contrast', 'white', 'black']
 
 export default function AddBookmarkModal({ onClose, editBookmark = null, defaultSectionId = 'unsectioned' }) {
-	const { bookmarks, sections, unsectioned, favorites, persist } = useStore()
+	const { sections, favorites, favoritesSlots, persist } = useStore()
 
 	const [url, setUrl] = useState(editBookmark?.url ?? '')
 	const [title, setTitle] = useState(editBookmark?.title ?? '')
@@ -61,13 +61,23 @@ export default function AddBookmarkModal({ onClose, editBookmark = null, default
 			createdAt: editBookmark?.createdAt ?? Date.now(),
 		}
 
+		const saved = useStore.getState()
+
+		if (!editBookmark && sectionId === 'favorites' && saved.favorites.length >= saved.favoritesSlots) {
+			alert(`Панель избранного заполнена (${saved.favoritesSlots}/${saved.favoritesSlots})`)
+			return
+		}
+
 		useStore.setState((s) => {
 			const newBookmarks = { ...s.bookmarks, [id]: bookmark }
 			let newUnsectioned = [...s.unsectioned]
+			let newFavorites = [...s.favorites]
 			let newSections = s.sections.map(sec => ({ ...sec, bookmarkIds: [...sec.bookmarkIds] }))
 
 			if (!editBookmark) {
-				if (sectionId === 'unsectioned') {
+				if (sectionId === 'favorites') {
+					newFavorites = [...newFavorites, id]
+				} else if (sectionId === 'unsectioned') {
 					newUnsectioned = [...newUnsectioned, id]
 				} else {
 					newSections = newSections.map(sec =>
@@ -78,7 +88,12 @@ export default function AddBookmarkModal({ onClose, editBookmark = null, default
 				}
 			}
 
-			return { bookmarks: newBookmarks, unsectioned: newUnsectioned, sections: newSections }
+			return {
+				bookmarks: newBookmarks,
+				unsectioned: newUnsectioned,
+				sections: newSections,
+				favorites: newFavorites,
+			}
 		})
 
 		persist()
@@ -150,7 +165,10 @@ export default function AddBookmarkModal({ onClose, editBookmark = null, default
 					<div className={styles.field}>
 						<label>Раздел</label>
 						<select value={sectionId} onChange={(e) => setSectionId(e.target.value)}>
-						<option value="unsectioned">Без раздела</option>
+							<option value="favorites" disabled={favorites.length >= favoritesSlots}>
+								Избранное
+							</option>
+							<option value="unsectioned">Без раздела</option>
 							{sections.map(sec => (
 								<option key={sec.id} value={sec.id}>{sec.title}</option>
 							))}
