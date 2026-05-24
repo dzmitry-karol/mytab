@@ -28,15 +28,12 @@ import {
 
 import styles from './App.module.scss'
 
-const FAVORITES_LIMIT = 8
-
 const toId = (id) => String(id ?? '')
 const isFavoriteDragId = (id) => toId(id).startsWith('fav:')
 const isSectionDragId = (id) => toId(id).startsWith('section:')
 const realBookmarkId = (id) => toId(id).replace(/^fav:/, '')
 const isFavoriteDropId = (id) => {
 	const value = toId(id)
-	return value === 'favorites-bar' || value.startsWith('fav:') || value.startsWith('fav-empty-')
 }
 
 const getRectCenter = (rect) => {
@@ -89,8 +86,9 @@ const normalContainersEqual = (state, next) => (
 )
 
 export default function App() {
-	const { sections, unsectioned, bookmarks, persist } = useStore()
+	const { sections, unsectioned, bookmarks, favoritesSlots, persist } = useStore()
 	const [showBookmark, setShowBookmark] = useState(false)
+	const [bookmarkDefaultSectionId, setBookmarkDefaultSectionId] = useState('unsectioned')
 	const [showSection, setShowSection] = useState(false)
 	const [activeId, setActiveId] = useState(null)
 	const [showSettings, setShowSettings] = useState(false)
@@ -99,6 +97,11 @@ export default function App() {
 	const sensors = useSensors(useSensor(PointerSensor, {
 		activationConstraint: { distance: 8 },
 	}))
+
+	const openBookmarkModal = (defaultSectionId = 'unsectioned') => {
+		setBookmarkDefaultSectionId(defaultSectionId)
+		setShowBookmark(true)
+	}
 
 	const getNormalBookmarkIds = (state = useStore.getState()) => new Set([
 		...state.unsectioned,
@@ -242,8 +245,8 @@ export default function App() {
 
 		if (state.favorites.includes(bookmarkId)) return false
 
-		if (state.favorites.length >= FAVORITES_LIMIT) {
-			alert(`Избранное заполнено (${FAVORITES_LIMIT}/${FAVORITES_LIMIT})`)
+		if (state.favorites.length >= state.favoritesSlots) {
+			alert(`Избранное заполнено (${state.favoritesSlots}/${state.favoritesSlots})`)
 			return false
 		}
 
@@ -274,8 +277,8 @@ export default function App() {
 			const next = insertIntoContainer(state, bookmarkId, toContainer, overId, dropMeta)
 
 			return {
-					favorites: state.favorites.filter(id => id !== bookmarkId),
-					...next,
+				favorites: state.favorites.filter(id => id !== bookmarkId),
+				...next,
 			}
 		})
 	}
@@ -384,7 +387,7 @@ export default function App() {
 		? bookmarks[activeId] || bookmarks[realBookmarkId(activeId)]
 		: null
 
-	return (
+  	return (
 		<DndContext
 			sensors={sensors}
 			collisionDetection={collisionDetection}
@@ -393,7 +396,7 @@ export default function App() {
 			onDragEnd={handleDragEnd}
 		>
 			<div className={styles.wrapper}>
-				<FavoritesBar />
+				<FavoritesBar onAddFavorite={() => openBookmarkModal('favorites')} />
 
 				<button className={styles.burger} onClick={() => setShowSettings(true)}>☰</button>
 
@@ -408,7 +411,7 @@ export default function App() {
 					</SortableContext>
 
 					<SortableContext items={unsectioned} strategy={rectSortingStrategy}>
-						<UnsectionedArea onAddBookmark={() => setShowBookmark(true)}>
+						<UnsectionedArea onAddBookmark={() => openBookmarkModal('unsectioned')}>
 							{unsectioned.map(id => bookmarks[id] && (
 								<BookmarkCard key={id} bookmark={bookmarks[id]} />
 							))}
@@ -442,11 +445,16 @@ export default function App() {
 				</DragOverlay>
 			</div>
 
-			{showBookmark && <AddBookmarkModal onClose={() => setShowBookmark(false)} />}
+			{showBookmark && (
+				<AddBookmarkModal
+					onClose={() => setShowBookmark(false)}
+					defaultSectionId={bookmarkDefaultSectionId}
+				/>
+			)}
 			{showSection && <AddSectionModal onClose={() => setShowSection(false)} />}
 			{showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
-		</DndContext>
-	)
+    	</DndContext>
+  	)
 }
 
 function UnsectionedArea({ children, onAddBookmark }) {
@@ -457,5 +465,5 @@ function UnsectionedArea({ children, onAddBookmark }) {
 			{children}
 			<AddBookmarkCard onClick={onAddBookmark} />
 		</div>
-  )
+	)
 }

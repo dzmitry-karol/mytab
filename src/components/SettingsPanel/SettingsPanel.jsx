@@ -1,19 +1,63 @@
 import { useRef, useState } from 'react'
 import styles from './SettingsPanel.module.scss'
-import useStore from '../../store/useStore'
+import useStore, {
+	FAVORITES_MAX_SLOTS,
+	FAVORITES_MIN_SLOTS,
+	clampFavoritesSlots,
+} from '../../store/useStore'
+
+const normalizeFavoritesBySlotLimit = (state, nextSlots) => {
+	const favoritesSlots = clampFavoritesSlots(nextSlots)
+	const favorites = state.favorites ?? []
+
+	if (favorites.length <= favoritesSlots) {
+		return {
+			...state,
+			favoritesSlots,
+			favorites,
+		}
+	}
+
+	const nextFavorites = favorites.slice(0, favoritesSlots)
+	const overflowFavorites = favorites.slice(favoritesSlots)
+	const overflowSet = new Set(overflowFavorites)
+	const unsectionedSet = new Set(state.unsectioned ?? [])
+	const bookmarkIds = new Set(Object.keys(state.bookmarks ?? {}))
+	const overflowToMove = overflowFavorites.filter(id => bookmarkIds.has(id) && !unsectionedSet.has(id))
+
+	return {
+		...state,
+		favoritesSlots,
+		favorites: nextFavorites,
+		unsectioned: [...(state.unsectioned ?? []), ...overflowToMove],
+		sections: (state.sections ?? []).map(section => ({
+			...section,
+			bookmarkIds: section.bookmarkIds.filter(id => !overflowSet.has(id)),
+		})),
+	}
+}
 
 export default function SettingsPanel({ onClose }) {
 	const fileInputRef = useRef(null)
-	const { bookmarks, sections, unsectioned, favorites, tabTitle, persist } = useStore()
+	const { bookmarks, sections, unsectioned, favorites, favoritesSlots, tabTitle, persist } = useStore()
 	const [titleInput, setTitleInput] = useState(tabTitle || 'New Tab')
+	const [favoritesSlotsInput, setFavoritesSlotsInput] = useState(String(favoritesSlots))
 
 	const handleTitleSave = () => {
 		useStore.setState({ tabTitle: titleInput })
 		persist()
 	}
 
+	const handleFavoritesSlotsSave = () => {
+		const nextSlots = clampFavoritesSlots(favoritesSlotsInput)
+
+		useStore.setState(state => normalizeFavoritesBySlotLimit(state, nextSlots))
+		setFavoritesSlotsInput(String(nextSlots))
+		persist()
+	}
+
 	const handleExport = () => {
-		const state = { bookmarks, sections, unsectioned, favorites, tabTitle }
+		const state = { bookmarks, sections, unsectioned, favorites, favoritesSlots, tabTitle }
 		const json = JSON.stringify(state, null, 2)
 		const blob = new Blob([json], { type: 'application/json' })
 		const url = URL.createObjectURL(blob)
@@ -48,21 +92,25 @@ export default function SettingsPanel({ onClose }) {
 				)
 
 				if (strategy) {
-					useStore.setState({
+					const nextState = normalizeFavoritesBySlotLimit({
 						bookmarks: imported.bookmarks,
 						sections: imported.sections,
 						unsectioned: imported.unsectioned ?? [],
 						favorites: imported.favorites ?? [],
 						tabTitle: imported.tabTitle ?? 'New Tab',
-					})
+					}, imported.favoritesSlots ?? favoritesSlots)
+
+					useStore.setState(nextState)
+					setFavoritesSlotsInput(String(nextState.favoritesSlots))
 				} else {
-					useStore.setState(s => ({
+					useStore.setState(s => normalizeFavoritesBySlotLimit({
 						bookmarks: { ...s.bookmarks, ...imported.bookmarks },
 						sections: [...s.sections, ...imported.sections],
 						unsectioned: [...s.unsectioned, ...(imported.unsectioned ?? [])],
 						favorites: [...new Set([...s.favorites, ...(imported.favorites ?? [])])],
+						favoritesSlots: s.favoritesSlots,
 						tabTitle: s.tabTitle || imported.tabTitle || 'New Tab',
-					}))
+					}, s.favoritesSlots))
 				}
 
 				persist()
@@ -114,6 +162,27 @@ export default function SettingsPanel({ onClose }) {
 						<button className={styles.btn} onClick={handleTitleSave}>
 							💾
 						</button>
+					</div>
+				</div>
+
+				<div className={styles.section}>
+					<div className={styles.sectionTitle}>FavoritesBar slots</div>
+					<div className={styles.inlineControl}>
+						<input
+							className={styles.input}
+							type="number"
+							min={FAVORITES_MIN_SLOTS}
+							max={FAVORITES_MAX_SLOTS}
+							value={favoritesSlotsInput}
+							onChange={e => setFavoritesSlotsInput(e.target.value)}
+							onKeyDown={e => e.key === 'Enter' && handleFavoritesSlotsSave()}
+						/>
+						<button className={styles.btn} onClick={handleFavoritesSlotsSave}>
+							💾
+						</button>
+					</div>
+					<div className={styles.hint}>
+						От {FAVORITES_MIN_SLOTS} до {FAVORITES_MAX_SLOTS}. Если слотов станет меньше, лишние закладки уйдут вниз в «Без раздела».
 					</div>
 				</div>
 			</div>

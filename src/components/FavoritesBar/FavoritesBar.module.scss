@@ -66,8 +66,8 @@
 }
 
 .slotEmpty {
-  border: 1px dashed $border;
-  cursor: default;
+	border: 1px dashed $border;
+	cursor: default;
 }
 
 .slotOver {
@@ -76,26 +76,41 @@
 }
 
 .favicon {
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
+	width: 36px;
+	height: 36px;
+	object-fit: contain;
 }
 
 .removeBtn {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: $danger;
-  color: white;
-  font-size: 10px;
-  display: none;
-  align-items: center;
-  justify-content: center;
+	position: absolute;
+	top: -4px;
+	right: -4px;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: $danger;
+	color: white;
+	font-size: 10px;
+	display: none;
+	align-items: center;
+	justify-content: center;
 
-  .slot:hover & {
-    display: flex;
-  }
+	.slot:hover & {
+		display: flex;
+	}
+}
+
+.addSlot {
+	border: 1px dashed $border;
+	background: transparent;
+	color: $text-secondary;
+	font-size: 28px;
+	line-height: 1;
+	cursor: pointer;
+
+	&:hover {
+		color: $text-primary;
+		border-color: $accent;
+		background: rgba(91, 141, 238, 0.12);
+	}
 }

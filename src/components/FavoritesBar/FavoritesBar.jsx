@@ -3,19 +3,16 @@ import ConfirmModal from '../ConfirmModal/ConfirmModal'
 import { SortableContext, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
-import { getTextColor } from '../../utils/colorExtractor'
 import styles from './FavoritesBar.module.scss'
 import useStore from '../../store/useStore'
-
-const SLOTS = 8
 
 function FavSlot({ id }) {
 	const { bookmarks, persist } = useStore()
 	const bookmark = bookmarks[id]
 	const [confirmOpen, setConfirmOpen] = useState(false)
 
-	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
-		id: `fav:${id}`
+	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+		id: `fav:${id}`,
 	})
 
 	return (
@@ -29,7 +26,7 @@ function FavSlot({ id }) {
 					'--bg-color': bookmark?.bgColor || '#1a1a1a',
 					transform: CSS.Transform.toString(transform),
 					transition,
-					opacity: isDragging ? 0.3 : 1
+					opacity: isDragging ? 0.3 : 1,
 				}}
 				{...attributes}
 				{...listeners}
@@ -55,8 +52,25 @@ function FavSlot({ id }) {
 	)
 }
 
+function AddFavoriteSlot({ onClick }) {
+	const { setNodeRef, isOver } = useDroppable({ id: 'fav-add' })
+
+	return (
+		<button
+			ref={setNodeRef}
+			type="button"
+			className={`${styles.slot} ${styles.addSlot} ${isOver ? styles.slotOver : ''}`}
+			onClick={onClick}
+			title="Добавить закладку в избранное"
+		>
+			+
+		</button>
+	)
+}
+
 function EmptySlot({ index }) {
 	const { setNodeRef, isOver } = useDroppable({ id: `fav-empty-${index}` })
+
 	return (
 		<div
 			ref={setNodeRef}
@@ -65,22 +79,26 @@ function EmptySlot({ index }) {
 	)
 }
 
-export default function FavoritesBar() {
-	const { favorites } = useStore()
+export default function FavoritesBar({ onAddFavorite }) {
+	const { favorites, favoritesSlots } = useStore()
 	const { setNodeRef } = useDroppable({ id: 'favorites-bar' })
 
-	const emptySlots = SLOTS - favorites.length
+	const hasFreeSlot = favorites.length < favoritesSlots
+	const emptySlots = Math.max(favoritesSlots - favorites.length - (hasFreeSlot ? 1 : 0), 0)
 
 	return (
 		<div ref={setNodeRef} className={styles.barSpace}>
 			<div className={styles.barWrapper}>
 				<div className={styles.bar}>
-					<SortableContext 
+					<SortableContext
 						items={favorites.map(id => `fav:${id}`)}
 						strategy={horizontalListSortingStrategy}
 					>
 						{favorites.map(id => <FavSlot key={id} id={id} />)}
 					</SortableContext>
+
+					{hasFreeSlot && <AddFavoriteSlot onClick={onAddFavorite} />}
+
 					{Array.from({ length: emptySlots }).map((_, i) => (
 						<EmptySlot key={i} index={i} />
 					))}
