@@ -1,0 +1,24 @@
+@use 'variables' as *;
+@use 'reset';
+
+
+body {
+	position: relative;
+
+	background-image: 
+		linear-gradient(to right, hsl(48 25% 92.2%) 1px, transparent 1px), 
+		linear-gradient(to bottom, hsl(48 25% 92.2%) 1px, transparent 1px);
+    background-size: 24px 24px;
+
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+
+		width: 100%;
+		height: 100%;
+
+		background-image: linear-gradient(to bottom, hsl(48 33.3% 97.1%), transparent),
+	}
+}

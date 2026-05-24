@@ -1,0 +1,128 @@
+@use '../../styles/variables' as *;
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal {
+    background: $bg-surface;
+    border: 1px solid $border;
+    border-radius: $radius-modal;
+    padding: 24px;
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    label {
+        font-size: 12px;
+        color: $text-secondary;
+    }
+
+    input,
+    select {
+        background: $bg-elevated;
+        border: 1px solid $border;
+        border-radius: 6px;
+        padding: 8px 12px;
+        color: $text-primary;
+        font-size: 14px;
+        outline: none;
+
+        &:focus {
+            border-color: $accent;
+        }
+    }
+}
+
+.preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    img {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+.colorDot {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+}
+
+.colorModes {
+    display: flex;
+    gap: 8px;
+
+    button {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        background: $bg-elevated;
+        border: 1px solid $border;
+        color: $text-secondary;
+        transition: all 150ms ease;
+
+        &.active {
+            border-color: $accent;
+            color: $accent;
+        }
+    }
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+
+    button {
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: opacity 150ms ease;
+
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+}
+
+.btnPrimary {
+    background: $accent;
+    color: white;
+}
+
+.btnSecondary {
+    background: $bg-elevated;
+    color: $text-secondary;
+}
+
+.btnDanger {
+    background: $danger;
+    color: white;
+}
+
+.loadingString {
+    font-size: 12px;
+    color: 'gray';
+}

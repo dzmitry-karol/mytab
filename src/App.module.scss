@@ -1,0 +1,45 @@
+@use './styles/variables' as *;
+
+.wrapper {
+	display: flex;
+	flex-direction: column;
+
+	width: 1600px;
+	max-width: 95vw;
+	
+	margin: 0 auto;
+}
+
+.content {
+	margin-top: 44px;
+}
+
+.unsectionedArea {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	min-height: 60px;
+}
+
+.burger {
+	position: fixed;
+	top: 24px;
+	right: 24px;
+	width: 40px;
+	height: 40px;
+	border-radius: 8px;
+	background: $bg-elevated;
+	border: 1px solid $border;
+	color: $text-secondary;
+	font-size: 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 50;
+	transition: all 150ms ease;
+
+	&:hover {
+		color: $text-primary;
+		border-color: $text-secondary;
+	}
+}

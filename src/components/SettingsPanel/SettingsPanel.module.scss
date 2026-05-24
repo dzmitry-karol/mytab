@@ -1,0 +1,102 @@
+@use '../../styles/variables' as *;
+
+.backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 200;
+}
+
+.panel {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: 320px;
+	background: $bg-elevated;
+	border-left: .5px solid rgb(31 30 29 / 15%);
+	z-index: 201;
+	padding: 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	animation: slideIn 150ms ease;
+
+	background-image: radial-gradient(circle, hsl(60 2.6% 7.6% / 15%) 1px, transparent 1px);
+    background-size: 16px 16px;
+
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+
+		width: 100%;
+		height: 100%;
+
+		background-image: linear-gradient(to bottom, $bg-elevated, transparent),
+	}
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-size: 12px;
+  color: $text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.btn {
+	padding: 8px 12px;
+	border-radius: 8px;
+
+	font-size: 14px;
+	font-weight: 500;
+    line-height: 1.4;
+
+	background: $bg-surface;
+	color: $text-primary;
+
+	border: .5px solid rgb(31 30 29 / 15%);
+	transition: all 150ms ease;
+	text-align: left;
+
+ 	&:hover { 
+		background: $hover;
+		border: .5px solid $hover;
+	}
+}
+
+.btnDanger {
+  color: $danger;
+  border-color: $danger;
+}
+
+.input {
+	flex: 1;
+	background: $bg-elevated;
+	border: 1px solid $border;
+	border-radius: 6px;
+	padding: 8px 12px;
+	color: $text-primary;
+	font-size: 14px;
+	outline: none;
+
+	&:focus {
+		border-color: $accent;
+	}
+}

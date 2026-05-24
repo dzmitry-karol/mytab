@@ -1,0 +1,7 @@
+@use '../../styles/variables' as *;
+
+.message {
+	font-size: 13px;
+	color: $text-secondary;
+	line-height: 1.5;
+}
