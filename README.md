@@ -1,16 +1,58 @@
-# React + Vite
+# MyTab
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+MyTab is my custom version of the Chrome start page.
 
-Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- Custom start page for Chrome
+- Bookmark cards with favicons
+- Import and export bookmarks as JSON
+- Custom tab title
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech stack
 
-## Expanding the ESLint configuration
+- React
+- Vite
+- SCSS
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Project setup
+
+### 1. Install dependencies
+
+Open the project folder in your terminal and run:
+
+```bash
+npm install
+```
+
+### 2. Build the project
+
+To create the final version of the extension, run:
+
+```bash
+npm run build
+```
+
+After the build is finished, Vite will create a `dist` folder. This is the folder that should be loaded into Chrome as an extension.
+
+
+## Installing MyTab in Chrome
+
+### 1. Open Chrome Extensions
+
+Open Chrome and go to:
+
+```text
+chrome://extensions/
+```
+
+### 2. Enable Developer mode
+
+In the top-right corner of the Extensions page, turn on **Developer mode**.
+
+### 3. Load the extension
+
+Click **Load unpacked**.
+
+Then select the `dist` folder that was created

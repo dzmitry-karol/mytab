@@ -2,11 +2,17 @@
 	"manifest_version": 3,
 	"name": "MyTab",
 	"version": "0.2.0",
+	"description": "Alternative start page for Chrome.",
 	"chrome_url_overrides": {
 		"newtab": "index.html"
 	},
 	"permissions": ["storage"],
 	"host_permissions": [
 		"https://*/*"
-	]
+	],
+	"icons": {
+        "16": "public/icons/icon16.png",
+        "48": "public/icons/icon48.png",
+        "128": "public/icons/icon128.png"
+    }
 }
