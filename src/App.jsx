@@ -34,6 +34,10 @@ const isSectionDragId = (id) => toId(id).startsWith('section:')
 const realBookmarkId = (id) => toId(id).replace(/^fav:/, '')
 const isFavoriteDropId = (id) => {
 	const value = toId(id)
+	return value === 'favorites-bar'
+		|| value === 'fav-add'
+		|| value.startsWith('fav:')
+		|| value.startsWith('fav-empty-')
 }
 
 const getRectCenter = (rect) => {
