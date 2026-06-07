@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { loadState, saveState } from '../utils/storage'
+import { clearExpiredCache } from '../utils/faviconCache'
 
 export const FAVORITES_MIN_SLOTS = 3
 export const FAVORITES_MAX_SLOTS = 10
@@ -31,6 +32,10 @@ const useStore = create((set, get) => ({
 				favoritesSlots: clampFavoritesSlots(saved.favoritesSlots ?? DEFAULT_FAVORITES_SLOTS),
 			})
 		}
+
+		clearExpiredCache().catch(err => {
+			console.error('Failed to clear expired favicon cache:', err)
+		})
 	},
 
 	persist: () => {
