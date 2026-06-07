@@ -207,9 +207,11 @@ export default function AddBookmarkModal({ onClose, editBookmark = null, default
 								))}
 							</div>
 						</div>
-						{faviconCachedAt && (
+						{editBookmark && (
 							<div className={styles.cacheInfo}>
-								<span className={styles.cacheText}>обновлено {formatDaysAgo(faviconCachedAt)}</span>
+								{faviconCachedAt && (
+									<span className={styles.cacheText}>обновлено {formatDaysAgo(faviconCachedAt)}</span>
+								)}
 								<button
 									className={styles.refreshBtn}
 									onClick={handleRefreshFavicon}
