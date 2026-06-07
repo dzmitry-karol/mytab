@@ -1,10 +1,29 @@
-export async function fetchMeta(url) {
+import { getCachedFavicon, cacheFavicon } from './faviconCache'
+
+export async function fetchMeta(url, forceRefresh = false) {
 	const hostname = new URL(url).hostname
 	const googleFavicon = `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`
 	const directFavicon = `https://${hostname}/favicon.ico`
 
 	// проверяем favicon.ico напрямую
-	const favicon = await checkFavicon(directFavicon) ? directFavicon : googleFavicon
+	const faviconUrl = await checkFavicon(directFavicon) ? directFavicon : googleFavicon
+
+	let favicon = faviconUrl
+	try {
+		if (forceRefresh) {
+			favicon = await cacheFavicon(faviconUrl, true)
+		} else {
+			const cached = await getCachedFavicon(faviconUrl)
+			if (cached) {
+				favicon = cached
+			} else {
+				favicon = await cacheFavicon(faviconUrl)
+			}
+		}
+	} catch (err) {
+		console.warn('Failed to cache favicon, using URL:', err)
+		favicon = faviconUrl
+	}
 
 	try {
 		const apiUrl = `https://jsonlink.io/api/extract?url=${encodeURIComponent(url)}`

@@ -8,6 +8,18 @@ import { useDebounce } from '../../utils/useDebounce'
 
 const COLOR_MODES = ['auto', 'contrast', 'white', 'black']
 
+function formatDaysAgo(timestamp) {
+	const now = Date.now()
+	const diff = now - timestamp
+	const days = Math.floor(diff / (24 * 60 * 60 * 1000))
+
+	if (days === 0) return 'сегодня'
+	if (days === 1) return 'вчера'
+	if (days < 7) return `${days}д назад`
+	if (days < 14) return `${Math.floor(days / 7)}нед назад`
+	return `${Math.floor(days / 7)}нед назад`
+}
+
 export default function AddBookmarkModal({ onClose, editBookmark = null, defaultSectionId = 'unsectioned' }) {
 	const { sections, favorites, favoritesSlots, persist } = useStore()
 
@@ -19,6 +31,8 @@ export default function AddBookmarkModal({ onClose, editBookmark = null, default
 	const [colorMode, setColorMode] = useState(editBookmark?.bgColorMode ?? 'auto')
 	const [sectionId, setSectionId] = useState(defaultSectionId)
 	const [loading, setLoading] = useState(false)
+	const [refreshing, setRefreshing] = useState(false)
+	const [faviconCachedAt, setFaviconCachedAt] = useState(editBookmark?.faviconCachedAt ?? null)
 
 	const debouncedUrl = useDebounce(url, 500)
 	const initialUrl = editBookmark?.url ?? ''
@@ -38,6 +52,7 @@ export default function AddBookmarkModal({ onClose, editBookmark = null, default
 				setAutoColor(color)
 				setBgColor(color)
 				setColorMode('auto')
+				setFaviconCachedAt(Date.now())
 			})
 			.finally(() => setLoading(false))
 	}, [debouncedUrl])
@@ -50,6 +65,46 @@ export default function AddBookmarkModal({ onClose, editBookmark = null, default
 		else if (mode === 'black') setBgColor('#000000')
 	}
 
+	const handleRefreshFavicon = async () => {
+		if (!url) return
+
+		const normalized = url.startsWith('http') ? url : `https://${url}`
+
+		setRefreshing(true)
+		try {
+			const { favicon: f } = await fetchMeta(normalized, true)
+			const color = await extractEdgeColor(f, true)
+
+			setFavicon(f)
+			setAutoColor(color)
+			if (colorMode === 'auto') {
+				setBgColor(color)
+			}
+			setFaviconCachedAt(Date.now())
+
+			if (editBookmark) {
+				const id = editBookmark.id
+				useStore.setState((s) => ({
+					bookmarks: {
+						...s.bookmarks,
+						[id]: {
+							...s.bookmarks[id],
+							favicon: f,
+							bgColor: colorMode === 'auto' ? color : bgColor,
+							faviconCachedAt: Date.now(),
+						}
+					}
+				}))
+				persist()
+			}
+		} catch (err) {
+			alert('Не удалось обновить иконку. Проверьте доступность сайта.')
+			console.error('Favicon refresh failed:', err)
+		} finally {
+			setRefreshing(false)
+		}
+	}
+
 	const handleSave = () => {
 		if (!url || !title) return
 
@@ -59,6 +114,7 @@ export default function AddBookmarkModal({ onClose, editBookmark = null, default
 			id, url: normalized, title, favicon,
 			bgColor, bgColorMode: colorMode,
 			createdAt: editBookmark?.createdAt ?? Date.now(),
+			faviconCachedAt: faviconCachedAt ?? Date.now(),
 		}
 
 		const saved = useStore.getState()
@@ -135,21 +191,36 @@ export default function AddBookmarkModal({ onClose, editBookmark = null, default
 				</div>
 
 				{favicon && (
-					<div className={styles.preview}>
-						<img src={favicon} alt="" />
-						<div className={styles.colorDot} style={{ background: bgColor }} />
-							<div className={styles.colorModes}>
-							{COLOR_MODES.map(mode => (
-								<button
-									key={mode}
-									className={colorMode === mode ? styles.active : ''}
-									onClick={() => handleColorMode(mode)}
-								>
-									{mode}
-								</button>
-							))}
+					<>
+						<div className={styles.preview}>
+							<img src={favicon} alt="" />
+							<div className={styles.colorDot} style={{ background: bgColor }} />
+								<div className={styles.colorModes}>
+								{COLOR_MODES.map(mode => (
+									<button
+										key={mode}
+										className={colorMode === mode ? styles.active : ''}
+										onClick={() => handleColorMode(mode)}
+									>
+										{mode}
+									</button>
+								))}
+							</div>
 						</div>
-					</div>
+						{faviconCachedAt && (
+							<div className={styles.cacheInfo}>
+								<span className={styles.cacheText}>обновлено {formatDaysAgo(faviconCachedAt)}</span>
+								<button
+									className={styles.refreshBtn}
+									onClick={handleRefreshFavicon}
+									disabled={refreshing}
+									title="Обновить"
+								>
+									{refreshing ? '⏳' : '🔄'}
+								</button>
+							</div>
+						)}
+					</>
 				)}
 
 				<div className={styles.field}>

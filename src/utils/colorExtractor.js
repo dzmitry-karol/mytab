@@ -1,8 +1,33 @@
-export async function extractEdgeColor(faviconUrl) {
+import { getCachedFavicon, cacheFavicon } from './faviconCache'
+
+export async function extractEdgeColor(faviconUrl, forceRefresh = false) {
 	try {
-		const res = await fetch(faviconUrl)
-		const blob = await res.blob()
-		const blobUrl = URL.createObjectURL(blob)
+		let dataUrl = faviconUrl
+
+		if (faviconUrl.startsWith('data:')) {
+			dataUrl = faviconUrl
+		} else {
+			try {
+				if (forceRefresh) {
+					dataUrl = await cacheFavicon(faviconUrl, true)
+				} else {
+					const cached = await getCachedFavicon(faviconUrl)
+					dataUrl = cached || await cacheFavicon(faviconUrl)
+				}
+			} catch (err) {
+				console.warn('Failed to cache favicon for color extraction, using URL:', err)
+				dataUrl = faviconUrl
+			}
+		}
+
+		let blobUrl
+		if (dataUrl.startsWith('data:')) {
+			blobUrl = dataUrl
+		} else {
+			const res = await fetch(dataUrl)
+			const blob = await res.blob()
+			blobUrl = URL.createObjectURL(blob)
+		}
 
 		const img = new Image()
 		await new Promise((resolve, reject) => {
@@ -35,7 +60,9 @@ export async function extractEdgeColor(faviconUrl) {
 			[0, 0, 0]
 		).map(v => Math.round(v / pixels.length))
 
-		URL.revokeObjectURL(blobUrl)
+		if (!dataUrl.startsWith('data:')) {
+			URL.revokeObjectURL(blobUrl)
+		}
 		return rgbToHex(...avg)
 	} catch {
 		return '#1e1e1e'
